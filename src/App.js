@@ -1,25 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+import React, {useState, useEffect} from 'react'
+import {app} from './base'
+import {Switch, Route} from 'react-router-dom'
+import {Album} from './Album'
+import {Home} from './Home'
+
+const db = app.firestore();
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const [albums, setAlbums] = useState([]);
+
+    useEffect(() => {
+        const unmount = db.collection('albums')
+            .onSnapshot((snap) => {
+            const tempAlb = [];
+            snap.forEach((doc) => {
+                tempAlb.push({...doc.data(), id: doc.id});
+            });
+            setAlbums(tempAlb);
+        });
+        return unmount;
+    }, []);
+
+    return (
+        <main>
+            <Switch>
+                <Route exact path={'/'} render={() => <Home albums={albums} />} />
+                <Route path="/:album" component={Album} />
+            </Switch>
+        </main>
+    );
 }
 
 export default App;
